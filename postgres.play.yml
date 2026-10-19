@@ -1,0 +1,8 @@
+---
+- name: Deploy PostgreSQL
+  hosts: vm1
+  become: true
+  
+  roles:
+    - postgres
+

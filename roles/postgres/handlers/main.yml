@@ -1,0 +1,12 @@
+---
+- name: Restart custom PostgreSQL
+  ansible.builtin.systemd:
+    name: postgres-custom
+    state: restarted
+    daemon_reload: true
+
+- name: Restart PostgreSQL exporter
+  ansible.builtin.systemd:
+    name: postgres-exporter
+    state: restarted
+    daemon_reload: true

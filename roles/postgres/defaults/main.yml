@@ -1,0 +1,51 @@
+---
+postgres__packages:
+  - postgresql-14
+  - postgresql-client-14
+  - python3-psycopg2
+
+postgres__data_dir: /data/postgres/data
+
+postgres__hba_rules:
+  - type: local
+    database: all
+    user: postgres
+    address: ""
+    method: peer
+
+  - type: local
+    database: all
+    user: zetsu
+    address: ""
+    method: peer
+      
+  - type: host
+    database: all
+    user: all
+    address: 127.0.0.1/32
+    method: scram-sha-256
+
+  - type: host
+    database: all
+    user: all
+    address: ::1/128
+    method: scram-sha-256
+
+postgres__opts:
+  listen_addresses: "'localhost'"
+  port: 5432
+  max_connections: 100
+  shared_buffers: 128MB
+
+postgres__databases:
+  - name: jinchuriki
+    owner: obito
+
+postgres__users:
+  - name: obito
+    password: "{{  vault_obito_password }}"
+
+postgres__exporter_version: "0.17.0"
+postgres__exporter_arch: linux-arm64
+postgres__exporter_port: 9187
+postgres__exporter_user: zetsu

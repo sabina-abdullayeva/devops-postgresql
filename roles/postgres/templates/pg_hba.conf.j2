@@ -1,0 +1,6 @@
+# Managed by Ansible
+
+{% for rule in postgres__hba_rules %}
+{{ rule.type }} {{ rule.database }} {{ rule.user }}{% if rule.address %} {{ rule.address }}{% endif %} {{ rule.method }}
+{% endfor %}
+
