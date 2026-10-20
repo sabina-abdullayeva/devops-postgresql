@@ -1,9 +1,3 @@
-# Роль `postgres`
-
-Устанавливает PostgreSQL 14 и PostgreSQL Exporter, создаёт пользователей и
-базы данных, настраивает отдельный systemd-сервис и проверяет подключение
-запросом `SELECT 1`.
-
 ## Требования
 
 - Debian/Ubuntu с `systemd`;
@@ -23,7 +17,7 @@
 - `postgres__exporter_version`, `postgres__exporter_arch`,
   `postgres__exporter_port`, `postgres__exporter_user` — настройки экспортера.
 
-Значения по умолчанию находятся в `defaults/main.yml`. Пароли следует хранить
+Значения по умолчанию находятся в `defaults/main.yml`. Пароли
 в Ansible Vault.
 
 ## Пример playbook
