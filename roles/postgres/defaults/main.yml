@@ -45,6 +45,10 @@ postgres__users:
   - name: obito
     password: "{{  vault_obito_password }}"
 
+postgres__healthcheck_database: jinchuriki
+postgres__healthcheck_user: obito
+postgres__healthcheck_password: "{{ vault_obito_password }}"
+
 postgres__exporter_version: "0.17.0"
 postgres__exporter_arch: linux-arm64
 postgres__exporter_port: 9187

@@ -1,0 +1,85 @@
+
+PLAY [Deploy PostgreSQL] *******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm1]
+
+TASK [postgres : Install PostgreSQL packages] **********************************
+ok: [vm1] => (item=postgresql-14)
+ok: [vm1] => (item=postgresql-client-14)
+ok: [vm1] => (item=python3-psycopg2)
+
+TASK [postgres : Create /data directory] ***************************************
+ok: [vm1]
+
+TASK [postgres : Create PostgreSQL directories] ********************************
+ok: [vm1] => (item=/data/postgres)
+ok: [vm1] => (item=/data/postgres/data)
+
+TASK [postgres : Disable automatic startup of default cluster] *****************
+ok: [vm1]
+
+TASK [postgres : Stop default PostgreSQL cluster] ******************************
+ok: [vm1]
+
+TASK [postgres : Initialize PostgreSQL cluster] ********************************
+ok: [vm1]
+
+TASK [postgres : Install PostgreSQL systemd service] ***************************
+ok: [vm1]
+
+TASK [postgres : Enable and start custom PostgreSQL] ***************************
+ok: [vm1]
+
+TASK [postgres : Configure PostgreSQL options] *********************************
+ok: [vm1] => (item={'key': 'listen_addresses', 'value': "'localhost'"})
+ok: [vm1] => (item={'key': 'port', 'value': 5432})
+ok: [vm1] => (item={'key': 'max_connections', 'value': 100})
+ok: [vm1] => (item={'key': 'shared_buffers', 'value': '128MB'})
+
+TASK [postgres : Configure PostgreSQL authentication] **************************
+ok: [vm1]
+
+TASK [postgres : Register obito] ***********************************************
+ok: [vm1] => (item=None)
+ok: [vm1]
+
+TASK [postgres : Cerate PostgreSQL database] ***********************************
+ok: [vm1] => (item={'name': 'jinchuriki', 'owner': 'obito'})
+
+TASK [postgres : Apply PostgreSQL configuration before connection check] *******
+
+TASK [postgres : Check PostgreSQL connection with SELECT 1] ********************
+ok: [vm1]
+
+TASK [postgres : Create zetsu linux user] **************************************
+ok: [vm1]
+
+TASK [postgres : Register zetsu in PostgreSQL] *********************************
+ok: [vm1]
+
+TASK [postgres : Grant Zetsu monitoring privileges] ****************************
+[DEPRECATION WARNING]: Param 'groups' is deprecated. See the module docs for 
+more information. This feature will be removed from community.postgresql in 
+version 6.0.0. Deprecation warnings can be disabled by setting 
+deprecation_warnings=False in ansible.cfg.
+ok: [vm1]
+
+TASK [postgres : Download PostgreSQL exporter] *********************************
+ok: [vm1 -> localhost]
+
+TASK [postgres : Extract PostgreSQL exporter] **********************************
+skipping: [vm1]
+
+TASK [postgres : Install PostgreSQL exporter binary] ***************************
+ok: [vm1]
+
+TASK [postgres : Install PostgreSQL exporter service] **************************
+ok: [vm1]
+
+TASK [postgres : Start PostgreSQL exporter] ************************************
+ok: [vm1]
+
+PLAY RECAP *********************************************************************
+vm1                        : ok=21   changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+

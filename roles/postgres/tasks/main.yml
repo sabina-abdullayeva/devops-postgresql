@@ -99,6 +99,19 @@
   loop: "{{ postgres__databases }}"
   become_user: postgres
 
+- name: Apply PostgreSQL configuration before connection check
+  ansible.builtin.meta: flush_handlers
+
+- name: Check PostgreSQL connection with SELECT 1
+  community.postgresql.postgresql_query:
+    login_db: "{{ postgres__healthcheck_database }}"
+    login_user: "{{ postgres__healthcheck_user }}"
+    login_password: "{{ postgres__healthcheck_password }}"
+    login_host: 127.0.0.1
+    login_port: "{{ postgres__opts.port | default(5432) }}"
+    query: SELECT 1
+  changed_when: false
+  no_log: true
 
 - name: Create zetsu linux user
   ansible.builtin.user:
