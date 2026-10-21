@@ -1,14 +1,14 @@
 [Unit]
 Description=PostgreSQL Exporter
-After=network.target postgres-custom.service
-Requires=postgres-custom.service
+After=network.target {{ __postgres_service }}.service
+Requires={{ __postgres_service }}.service
 
 [Service]
 Type=simple
 User={{ postgres__exporter_user }}
 Group={{ postgres__exporter_user}}
 Environment="DATA_SOURCE_NAME=user={{ postgres__exporter_user }} host=/var/run/postgresql dbname=postgres sslmode=disable"
-ExecStart=/usr/local/bin/postgres_exporter --web.listen-address=127.0.0.1:{{ postgres__exporter_port }}
+ExecStart={{ __postgres_exporter_binary }} --web.listen-address=127.0.0.1:{{ postgres__exporter_port }}
 Restart=on-failure
 
 [Install]

@@ -28,26 +28,26 @@
 
 - name: Disable automatic startup of default cluster
   ansible.builtin.lineinfile:
-    path: /etc/postgresql/14/main/start.conf
+    path: "{{ __postgres_default_start_conf }}"
     regexp: '^auto$'
     line: manual
 
 - name: Stop default PostgreSQL cluster
   ansible.builtin.systemd:
-    name: postgresql@14-main
+    name: "{{ __postgres_default_service }}"
     state: stopped
     enabled: false
 
 - name: Initialize PostgreSQL cluster
   ansible.builtin.command:
-    cmd: /usr/lib/postgresql/14/bin/pg_ctl initdb -D {{ postgres__data_dir }}
+    cmd: "{{ __postgres_bin_dir }}/pg_ctl initdb -D {{ postgres__data_dir }}"
     creates: "{{ postgres__data_dir }}/PG_VERSION"
   become_user: postgres
 
 - name: Install PostgreSQL systemd service
   ansible.builtin.template:
     src: postgres-custom.service.j2
-    dest: /etc/systemd/system/postgres-custom.service
+    dest: "{{ __postgres_service_unit }}"
     owner: root
     group: root
     mode: '0644'
@@ -55,7 +55,7 @@
 
 - name: Enable and start custom PostgreSQL
   ansible.builtin.systemd:
-    name: postgres-custom
+    name: "{{ __postgres_service }}"
     enabled: true
     state: started
     daemon_reload: true
@@ -141,24 +141,24 @@
 - name: Download PostgreSQL exporter
   ansible.builtin.get_url:
     url: "https://github.com/prometheus-community/postgres_exporter/releases/download/v{{ postgres__exporter_version }}/postgres_exporter-{{ postgres__exporter_version }}.{{ postgres__exporter_arch }}.tar.gz"
-    dest: "/tmp/postgres_exporter-{{ postgres__exporter_version}}.tar.gz"
+    dest: "{{ __postgres_exporter_archive }}"
     mode: '0644'
   delegate_to: localhost
   become: false
 
 - name: Extract PostgreSQL exporter
   ansible.builtin.unarchive:
-    src: "/tmp/postgres_exporter-{{ postgres__exporter_version }}.tar.gz"
+    src: "{{ __postgres_exporter_archive }}"
     dest: /tmp
     remote_src: true
-    creates: "/tmp/postgres_exporter-{{ postgres__exporter_version }}.{{ postgres__exporter_arch }}/postgres_exporter"
+    creates: "{{ __postgres_exporter_extract_dir }}/postgres_exporter"
   delegate_to: localhost
   become: false
 
 - name: Install PostgreSQL exporter binary
   ansible.builtin.copy:
-    src: "/tmp/postgres_exporter-{{ postgres__exporter_version }}.{{ postgres__exporter_arch  }}/postgres_exporter"
-    dest: /usr/local/bin/postgres_exporter
+    src: "{{ __postgres_exporter_extract_dir }}/postgres_exporter"
+    dest: "{{ __postgres_exporter_binary }}"
     owner: root
     group: root
     mode: '0755'
@@ -167,13 +167,13 @@
 - name: Install PostgreSQL exporter service
   ansible.builtin.template:
     src: postgres-exporter.service.j2
-    dest: /etc/systemd/system/postgres-exporter.service
+    dest: "{{ __postgres_exporter_service_unit }}"
     mode: '0644'
   notify: Restart PostgreSQL exporter
 
 - name: Start PostgreSQL exporter
   ansible.builtin.systemd:
-    name: postgres-exporter
+    name: "{{ __postgres_exporter_service }}"
     enabled: true
     state: started
     daemon_reload: true  

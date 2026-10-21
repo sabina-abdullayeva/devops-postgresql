@@ -1,0 +1,14 @@
+---
+__postgres_version: "14"
+__postgres_bin_dir: "/usr/lib/postgresql/{{ __postgres_version }}/bin"
+__postgres_default_service: "postgresql@{{ __postgres_version }}-main"
+__postgres_default_start_conf: "/etc/postgresql/{{ __postgres_version }}/main/start.conf"
+
+__postgres_service: postgres-custom
+__postgres_service_unit: "/etc/systemd/system/{{ __postgres_service }}.service"
+
+__postgres_exporter_service: postgres-exporter
+__postgres_exporter_service_unit: "/etc/systemd/system/{{ __postgres_exporter_service }}.service"
+__postgres_exporter_binary: /usr/local/bin/postgres_exporter
+__postgres_exporter_archive: "/tmp/postgres_exporter-{{ postgres__exporter_version }}.tar.gz"
+__postgres_exporter_extract_dir: "/tmp/postgres_exporter-{{ postgres__exporter_version }}.{{ postgres__exporter_arch }}"

@@ -1,7 +1,7 @@
 ---
 postgres__packages:
-  - postgresql-14
-  - postgresql-client-14
+  - "postgresql-{{ __postgres_version }}"
+  - "postgresql-client-{{ __postgres_version }}"
   - python3-psycopg2
 
 postgres__data_dir: /data/postgres/data
