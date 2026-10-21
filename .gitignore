@@ -1,6 +1,7 @@
+.DS_Store
 .venv/
 __pycache__/
-*.retry
 *.pyc
+*.retry
 *.backup
 .vault_pass
