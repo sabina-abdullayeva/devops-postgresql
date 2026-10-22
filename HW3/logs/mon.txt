@@ -1,0 +1,14 @@
+NAME                         IMAGE                       COMMAND                  SERVICE         CREATED          STATUS          PORTS
+monitoring-grafana-1         grafana/grafana:12.1.0      "/run.sh"                grafana         32 minutes ago   Up 32 minutes   127.0.0.1:3000->3000/tcp
+monitoring-node-exporter-1   prom/node-exporter:v1.9.1   "/bin/node_exporter …"   node-exporter   32 minutes ago   Up 32 minutes
+monitoring-prometheus-1      prom/prometheus:v3.5.0      "/bin/prometheus --c…"   prometheus      32 minutes ago   Up 32 minutes   127.0.0.1:9090->9090/tcp
+node_arp_entries{device="br-ce737f77dc0e"} 2
+node_arp_entries{device="docker0"} 1
+node_arp_entries{device="enp0s1"} 1
+node_boot_time_seconds 1.792195532e+09
+node_context_switches_total 1.70392456e+08
+node_cpu_guest_seconds_total{cpu="0",mode="nice"} 0
+node_cpu_guest_seconds_total{cpu="0",mode="user"} 0
+node_cpu_guest_seconds_total{cpu="1",mode="nice"} 0
+node_cpu_guest_seconds_total{cpu="1",mode="user"} 0
+node_cpu_guest_seconds_total{cpu="10",mode="nice"} 0

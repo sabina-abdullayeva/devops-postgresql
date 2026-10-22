@@ -1,50 +1,32 @@
-## Требования
+# HW2 — PostgreSQL через Ansible
+Роль:
 
-- Debian/Ubuntu с `systemd`;
-- права `become`;
-- коллекция `community.postgresql`.
+- устанавливает PostgreSQL из репозиториев Ubuntu;
+- создаёт кластер в `/data/postgres/data`;
+- настраивает `postgresql.conf` и `pg_hba.conf`;
+- создаёт пользователей и базы;
+- проверяет подключение запросом `SELECT 1`;
+- запускает PostgreSQL и postgres-exporter через systemd.
 
-## Переменные
+## Запуск
 
-- `postgres__packages` — устанавливаемые пакеты;
-- `postgres__data_dir` — каталог данных PostgreSQL;
-- `postgres__hba_rules` — правила `pg_hba.conf`;
-- `postgres__opts` — параметры `postgresql.conf`;
-- `postgres__users` — пользователи и их пароли;
-- `postgres__databases` — базы данных и их владельцы;
-- `postgres__healthcheck_database`, `postgres__healthcheck_user`,
-  `postgres__healthcheck_password` — данные для проверки `SELECT 1`;
-- `postgres__exporter_version`, `postgres__exporter_arch`,
-  `postgres__exporter_port`, `postgres__exporter_user` — настройки экспортера.
-
-Значения по умолчанию находятся в `defaults/main.yml`. Пароли
-в Ansible Vault.
-
-## Пример playbook
-
-```yaml
----
-- name: Deploy PostgreSQL
-  hosts: vm1
-  become: true
-
-  vars:
-    postgres__users:
-      - name: obito
-        password: "{{ vault_obito_password }}"
-    postgres__databases:
-      - name: jinchuriki
-        owner: obito
-    postgres__healthcheck_database: jinchuriki
-    postgres__healthcheck_user: obito
-    postgres__healthcheck_password: "{{ vault_obito_password }}"
-
-  roles:
-    - postgres
-```
-
-Запуск:
+Нужны Ubuntu/Debian, доступ `become` и коллекция
+`community.postgresql`.
 
 ```bash
 ansible-playbook postgres.play.yml --ask-vault-pass
 ```
+
+Пароль пользователя `obito` лежит в Ansible Vault:
+`inventories/main/group_vars/all.yml`.
+
+Переменные и пример использования роли описаны отдельно в
+[`roles/postgres/README.md`](roles/postgres/README.md).
+
+## Проверка
+
+После запуска проверка службы, подключение к PostgreSQL, базы,
+пользователей и метрики `pg_up`.
+
+Логи:
+ повторный запуск с `changed=0`.

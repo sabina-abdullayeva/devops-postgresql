@@ -1,30 +1,30 @@
-# Роль PostgreSQL
+# Роль postgres
 
-Роль устанавливает PostgreSQL, создаёт отдельный каталог данных и
-systemd-службу, настраивает базы и пользователей, выполняет `SELECT 1`,
-а также устанавливает postgres-exporter.
+Роль поднимает свой экземпляр PostgreSQL с отдельным каталогом данных и
+устанавливает postgres-exporter, стандартный кластер Ubuntu при этом
+останавливается.
 
-## Переменные
+## Что можно настроить
 
-- `postgres__packages` — устанавливаемые пакеты;
-- `postgres__data_dir` — каталог данных PostgreSQL;
-- `postgres__hba_rules` — правила `pg_hba.conf`;
-- `postgres__opts` — параметры `postgresql.conf`;
+- `postgres__packages` — пакеты для установки;
+- `postgres__data_dir` — каталог с данными;
+- `postgres__hba_rules` — содержимое `pg_hba.conf`;
+- `postgres__opts` — параметры из `postgresql.conf`;
 - `postgres__users` — пользователи PostgreSQL;
-- `postgres__databases` — базы данных и их владельцы;
-- `postgres__healthcheck_database` — база для проверки `SELECT 1`;
+- `postgres__databases` — базы и их владельцы;
+- `postgres__healthcheck_database` — база для `SELECT 1`;
 - `postgres__healthcheck_user` — пользователь для проверки;
-- `postgres__healthcheck_password` — пароль пользователя для проверки;
+- `postgres__healthcheck_password` — его пароль;
 - `postgres__exporter_version` — версия postgres-exporter;
-- `postgres__exporter_arch` — архитектура postgres-exporter;
-- `postgres__exporter_port` — порт метрик;
-- `postgres__exporter_user` — пользователь postgres-exporter.
+- `postgres__exporter_arch` — архитектура архива;
+- `postgres__exporter_port` — порт с метриками;
+- `postgres__exporter_user` — пользователь экспортера.
 
-Значения по умолчанию находятся в `defaults/main.yml`. Внутренние
-переменные роли находятся в `vars/main.yml` и имеют префикс `__`.
-Пароли должны храниться в Ansible Vault.
+Обычные настройки лежат в `defaults/main.yml`. В `vars/main.yml` находятся
+внутренние значения роли с префиксом `__`.
+Пароли в открытом виде хранить не надо, для них используется Ansible Vault.
 
-## Пример playbook
+## Пример
 
 ```yaml
 ---
@@ -46,8 +46,6 @@ systemd-службу, настраивает базы и пользовател�
   roles:
     - postgres
 ```
-
-## Запуск
 
 ```bash
 ansible-playbook postgres.play.yml --ask-vault-pass
