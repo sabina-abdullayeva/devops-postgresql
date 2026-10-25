@@ -1,0 +1,7 @@
+node_modules
+.next
+.cache
+.git
+.gitlab-ci-local*
+*.tar.gz
+eslint.codequality.json

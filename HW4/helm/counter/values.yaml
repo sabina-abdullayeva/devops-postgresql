@@ -1,0 +1,22 @@
+backend:
+  image: counter-backend:local
+  port: 8081
+  replicas: 1
+
+frontend:
+  image: counter-frontend:local
+  port: 8080
+  replicas: 1
+
+ingress:
+  className: nginx
+  host: counter.localtest.me
+  tlsSecret: counter-tls
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi

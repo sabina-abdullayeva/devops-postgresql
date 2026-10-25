@@ -1,0 +1,165 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  BACKEND_PORT: {{ .Values.backend.port | quote }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: backend
+      annotations:
+        checksum/config: {{ printf "%v" .Values.backend.port | sha256sum }}
+    spec:
+      containers:
+        - name: backend
+          image: {{ .Values.backend.image | quote }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-config
+                  key: BACKEND_PORT
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.port }}
+          startupProbe:
+            httpGet:
+              path: /api/counter
+              port: http
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /api/counter
+              port: http
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /api/counter
+              port: http
+            periodSeconds: 10
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-backend
+spec:
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: backend
+  ports:
+    - name: http
+      port: {{ .Values.backend.port }}
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: {{ .Values.frontend.image | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.port }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-frontend
+spec:
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+  ports:
+    - name: http
+      port: {{ .Values.frontend.port }}
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tlsSecret }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-backend
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-frontend
+                port:
+                  name: http

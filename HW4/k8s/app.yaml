@@ -1,0 +1,175 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: counter-config
+data:
+  BACKEND_PORT: "8081"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  annotations:
+    kubernetes.io/change-cause: "первая версия backend"
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: counter-backend:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: counter-config
+                  key: BACKEND_PORT
+          ports:
+            - name: http
+              containerPort: 8081
+          startupProbe:
+            httpGet:
+              path: /api/counter
+              port: http
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /api/counter
+              port: http
+            periodSeconds: 3
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /api/counter
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: backend
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  annotations:
+    kubernetes.io/change-cause: "первая версия frontend"
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: counter-frontend:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 3
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: counter
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - counter.localtest.me
+      secretName: counter-tls
+  rules:
+    - host: counter.localtest.me
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  name: http

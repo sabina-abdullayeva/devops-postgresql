@@ -1,0 +1,160 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+  labels:
+    app: node-exporter
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+  template:
+    metadata:
+      labels:
+        app: node-exporter
+    spec:
+      hostNetwork: true
+      hostPID: true
+      tolerations:
+        - operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: node-exporter
+          image: quay.io/prometheus/node-exporter:v1.9.1
+          args:
+            - --path.procfs=/host/proc
+            - --path.sysfs=/host/sys
+            - --path.rootfs=/host/root
+          ports:
+            - name: metrics
+              containerPort: 9100
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+            - name: root
+              mountPath: /host/root
+              readOnly: true
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: root
+          hostPath:
+            path: /
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: frontend-scaler
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: frontend-scaler
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - deployments/scale
+    resourceNames:
+      - frontend
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    resourceNames:
+      - frontend
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: frontend-scaler
+subjects:
+  - kind: ServiceAccount
+    name: frontend-scaler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: frontend-scaler
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: frontend-scale-up
+spec:
+  schedule: "0 9 * * *"
+  timeZone: Europe/Moscow
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: frontend-scaler
+          restartPolicy: Never
+          containers:
+            - name: kubectl
+              image: registry.k8s.io/kubectl:v1.31.0
+              args:
+                - scale
+                - --replicas=3
+                - --namespace=counter
+                - deployment
+                - frontend
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 50m
+                  memory: 64Mi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: frontend-scale-down
+spec:
+  schedule: "0 18 * * *"
+  timeZone: Europe/Moscow
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: frontend-scaler
+          restartPolicy: Never
+          containers:
+            - name: kubectl
+              image: registry.k8s.io/kubectl:v1.31.0
+              args:
+                - scale
+                - --replicas=1
+                - --namespace=counter
+                - deployment
+                - frontend
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 50m
+                  memory: 64Mi
