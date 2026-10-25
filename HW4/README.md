@@ -507,6 +507,20 @@ deployment "backend" successfully rolled out
 {"count": 3}
 ```
 
+История содержит причины изменений:
+
+```bash
+kubectl rollout history deployment/backend -n counter
+```
+
+```text
+deployment.apps/backend
+REVISION  CHANGE-CAUSE
+2         проверка readiness
+6         несуществующий образ
+7         первая версия backend
+```
+
 ### PostgreSQL и постоянные данные
 
 Запись в таблице перед пересозданием:
@@ -555,8 +569,13 @@ kubectl get daemonset,pod -n counter -l app=node-exporter -o wide
 ```
 
 ```text
-NAME                             DESIRED   CURRENT   READY
-daemonset.apps/node-exporter     3         3         3
+NAME                           DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE
+daemonset.apps/node-exporter   3         3         3       3            3
+
+NAME                      READY   STATUS    IP           NODE
+pod/node-exporter-lggt2   1/1     Running   172.21.0.4   course-worker
+pod/node-exporter-qvbzg   1/1     Running   172.21.0.3   course-worker2
+pod/node-exporter-xn46d   1/1     Running   172.21.0.2   course-control-plane
 ```
 
 Node Exporter запущен на всех трёх нодах, включая control-plane.
